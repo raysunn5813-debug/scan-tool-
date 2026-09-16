@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPER SCAN TOOL - Universal Multi-Vehicle Pro Suite</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-card: #131b2e;
+            --bg-card-hover: #1c2742;
+            --accent-cyan: #00e5ff;
+            --accent-blue: #2979ff;
+            --accent-green: #00e676;
+            --accent-orange: #ff9100;
+            --accent-purple: #d500f9;
+            --accent-red: #ff1744;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding: 20px; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand-title { display: flex; align-items: center; gap: 12px; }
+        .brand-title h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #00e5ff, #2979ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge-live {
+            background-color: rgba(0, 230, 118, 0.15);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-live::before {
+            content: ""; width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%;
+            display: inline-block; box-shadow: 0 0 8px var(--accent-green); animation: pulse 1.5s infinite;
+        }
+
+        .badge-speed {
+            background-color: rgba(0, 229, 255, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+        .btn {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn:hover { background-color: var(--bg-card-hover); border-color: var(--accent-cyan); }
+        .btn-success { background-color: rgba(0, 230, 118, 0.15); color: var(--accent-green); border-color: var(--accent-green); }
+        .btn-success:hover { background-color: var(--accent-green); color: #0b0f19; }
+        .btn-purple { background-color: rgba(213, 0, 249, 0.15); color: var(--accent-purple); border-color: var(--accent-purple); }
+        .btn-purple:hover { background-color: var(--accent-purple); color: #fff; }
+        .btn-danger { background-color: rgba(255, 23, 68, 0.15); color: var(--accent-red); border-color: var(--accent-red); }
+        .btn-danger:hover { background-color: var(--accent-red); color: #fff; }
+
+        /* Multi-Manufacturer Selector Bar */
+        .brand-selector-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .brand-chip {
+            background: #131b2e;
+            border: 1px solid #1e293b;
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .brand-chip:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+        .brand-chip.active {
+            background: linear-gradient(90deg, rgba(0, 229, 255, 0.2), rgba(41, 121, 255, 0.2));
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        /* Vehicle Banner */
+        .vehicle-banner {
+            background: linear-gradient(135deg, #131b2e 0%, #17233d 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .info-group .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 4px; }
+        .info-group .value { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
+        .info-group .value.highlight { color: var(--accent-cyan); font-family: monospace; letter-spacing: 1px; }
+
+        /* Dashboard Grid */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .card-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); }
+
+        /* Radial Gauges */
+        .gauge-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 0; position: relative; }
+        .gauge-svg { width: 190px; height: 115px; }
+        .gauge-bg { fill: none; stroke: #1e293b; stroke-width: 14; stroke-linecap: round; }
+        .gauge-fill { fill: none; stroke-width: 14; stroke-linecap: round; stroke-dasharray: 251.2; stroke-dashoffset: 251.2; transition: stroke-dashoffset 0.08s ease-out; }
+        .gauge-value-display { position: absolute; bottom: 6px; display: flex; flex-direction: column; align-items: center; }
+        .gauge-number { font-size: 2rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+        .gauge-unit { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-top: 4px; }
+
+        /* Progress Bars */
+        .mini-gauge-row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+        .mini-gauge-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+        .mini-gauge-val { font-size: 0.9rem; font-weight: 700; color: var(--accent-cyan); }
+        .progress-bar-bg { width: 100%; height: 6px; background-color: #1e293b; border-radius: 4px; overflow: hidden; margin-top: 3px; margin-bottom: 8px; }
+        .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00e5ff, #2979ff); border-radius: 4px; transition: width 0.08s ease-out; }
+
+        /* Actuator Grid */
+        .actuator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+            margin-top: 10px;
+        }
+
+        .actuator-card {
+            background: #0f1626;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .act-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+        .act-module { font-size: 0.75rem; color: var(--accent-cyan); font-family: monospace; margin-bottom: 8px; }
+        .act-desc { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.3; }
+        .act-actions { display: flex; gap: 8px; }
+
+        .act-log-box {
+            background-color: #080c14;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-top: 14px;
+            color: var(--accent-cyan);
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Misfire Grid */
+        .misfire-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 8px; }
+        .misfire-card { background-color: #0f1626; border: 1px solid #1e293b; border-radius: 8px; padding: 10px; text-align: center; }
+        .misfire-cyl-title { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; }
+        .misfire-count { font-size: 1.4rem; font-weight: 800; color: var(--accent-green); margin: 3px 0; font-family: monospace; }
+        .misfire-status-badge { font-size: 0.65rem; font-weight: 700; color: var(--accent-green); background: rgba(0, 230, 118, 0.1); padding: 2px 5px; border-radius: 4px; }
+
+        /* Freeze Frame */
+        .freeze-frame-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
+        .ff-item { background: #0f1626; border: 1px solid #1e293b; border-radius: 8px; padding: 10px 12px; }
+        .ff-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; }
+        .ff-val { font-size: 1rem; font-weight: 700; color: var(--accent-cyan); margin-top: 2px; }
+
+        /* Readiness Table */
+        .readiness-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+        .readiness-table th, .readiness-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #1e293b; }
+        .readiness-table th { color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; }
+        .ready-pass { color: var(--accent-green); font-weight: 700; }
+
+        /* DTC Section */
+        .dtc-section { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .dtc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .dtc-count-badge { background-color: rgba(255, 23, 68, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; }
+        .dtc-list { display: grid; gap: 12px; }
+        .dtc-card { background-color: #0f1626; border: 1px solid #1e293b; border-left: 4px solid var(--accent-orange); border-radius: 8px; padding: 14px; }
+        .dtc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .dtc-code { font-size: 1.3rem; font-weight: 800; color: var(--accent-orange); font-family: monospace; }
+        .dtc-system { font-size: 0.7rem; background-color: #1e293b; color: var(--text-secondary); padding: 2px 6px; border-radius: 4px; }
+        .dtc-title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+        .dtc-desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4; }
+        .dtc-tips-box { background-color: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 6px; padding: 8px 12px; font-size: 0.8rem; color: #bbf2f6; white-space: pre-line; }
+
+        /* Chart */
+        .chart-section { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+        .chart-wrapper { position: relative; height: 220px; width: 100%; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-card { background-color: var(--bg-card); border: 1px solid var(--accent-red); border-radius: 12px; padding: 24px; max-width: 440px; width: 90%; box-shadow: 0 0 30px rgba(255, 23, 68, 0.3); text-align: center; }
+        .modal-card h3 { color: var(--accent-red); font-size: 1.3rem; margin-bottom: 12px; }
+        .modal-card p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 20px; line-height: 1.4; }
+        .modal-actions { display: flex; gap: 12px; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="brand-title">
+            <h1>SUPER SCAN TOOL</h1>
+            <div id="connection-badge" class="badge-live">LIVE J2534</div>
+            <div id="ws-speed-badge" class="badge-speed">⚡ WebSocket: 60 FPS | 1.5ms</div>
+        </div>
+        <div class="header-actions">
+            <button id="record-btn" class="btn btn-purple" onclick="toggleLogging()">⏺️ Record Run (CSV)</button>
+            <button id="toggle-sim-btn" class="btn" onclick="toggleMode()">Switch to Simulation</button>
+            <button class="btn btn-danger" onclick="openClearModal()">🔥 Reset CEL / Clear DTCs</button>
+        </div>
+    </header>
+
+    <!-- Multi-Manufacturer Selector Chips -->
+    <div class="brand-selector-bar">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); align-self: center; margin-right: 4px;">VEHICLE PROFILE:</span>
+        <button class="brand-chip active" onclick="selectBrand('Chevrolet')">🏎️ Chevrolet</button>
+        <button class="brand-chip" onclick="selectBrand('GMC')">🚚 GMC</button>
+        <button class="brand-chip" onclick="selectBrand('Ford')">🚙 Ford</button>
+        <button class="brand-chip" onclick="selectBrand('Toyota')">🚗 Toyota</button>
+        <button class="brand-chip" onclick="selectBrand('Lexus')">💎 Lexus</button>
+        <button class="brand-chip" onclick="selectBrand('Honda')">🏁 Honda</button>
+        <button class="brand-chip" onclick="selectBrand('Mazda')">⚡ Mazda</button>
+        <button class="brand-chip" onclick="selectBrand('Volkswagen')">🇩🇪 VW</button>
+        <button class="brand-chip" onclick="selectBrand('Hyundai')">🇰🇷 Hyundai</button>
+        <button class="brand-chip" onclick="selectBrand('Kia')">🇰🇷 Kia</button>
+        <button class="brand-chip" onclick="selectBrand('Nissan')">🎌 Nissan</button>
+    </div>
+
+    <!-- Vehicle Identity Banner -->
+    <div class="vehicle-banner">
+        <div class="info-group">
+            <div class="label">Vehicle Identification Number (VIN)</div>
+            <div id="vin-display" class="value highlight">1GNEVHKW1KJ260578</div>
+        </div>
+        <div class="info-group">
+            <div class="label">Detected Vehicle Model</div>
+            <div id="model-display" class="value">2019 Chevrolet Traverse (3.6L V6 LFY)</div>
+        </div>
+        <div class="info-group">
+            <div class="label">Network & Addressing</div>
+            <div class="value">Universal High Speed CAN (500 kbps)</div>
+        </div>
+        <div class="info-group">
+            <div class="label">OBD-II Battery Voltage</div>
+            <div id="vbatt-display" class="value highlight" style="color: #00e676;">13.6 V</div>
+        </div>
+    </div>
+
+    <!-- 🛠️ Bi-Directional Actuators & Module Control Center -->
+    <div class="card" style="margin-bottom: 20px; border-color: var(--accent-blue);">
+        <div class="card-header">
+            <div>
+                <div class="card-title" style="color: var(--accent-cyan); font-size: 1rem;">🛠️ Bi-Directional Actuator & Active Component Tests</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                    Send UDS ISO 14229 Service 0x2F / 0x10 commands to physically trigger relays, solenoids, & fans.
+                    <span style="color: #ff9100; font-weight: 700;">(Vehicle Key must be in Key-On Engine-Off position)</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="actuator-cards-container" class="actuator-grid">
+            <!-- Populated via JavaScript -->
+        </div>
+
+        <div class="act-log-box" id="act-log-display">
+            ⚡ Ready for Bi-Directional command execution.
+        </div>
+    </div>
+
+    <!-- Live Radial & Performance Gauges Grid -->
+    <div class="dashboard-grid">
+        <!-- Tachometer -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Engine Speed</div>
+                <div id="rpm-text" class="card-title" style="color: var(--accent-cyan);">0 RPM</div>
+            </div>
+            <div class="gauge-container">
+                <svg class="gauge-svg" viewBox="0 0 200 120">
+                    <path class="gauge-bg" d="M 20 105 A 80 80 0 0 1 180 105" />
+                    <path id="rpm-gauge-fill" class="gauge-fill" stroke="url(#cyan-gradient)" d="M 20 105 A 80 80 0 0 1 180 105" />
+                    <defs>
+                        <linearGradient id="cyan-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#00e5ff" />
+                            <stop offset="70%" stop-color="#2979ff" />
+                            <stop offset="100%" stop-color="#ff1744" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="gauge-value-display">
+                    <div id="rpm-val" class="gauge-number">1634</div>
+                    <div class="gauge-unit">RPM (x1000)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Speedometer -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Vehicle Speed</div>
+                <div class="card-title" style="color: var(--accent-blue);">SPEEDOMETER</div>
+            </div>
+            <div class="gauge-container">
+                <svg class="gauge-svg" viewBox="0 0 200 120">
+                    <path class="gauge-bg" d="M 20 105 A 80 80 0 0 1 180 105" />
+                    <path id="speed-gauge-fill" class="gauge-fill" stroke="#2979ff" d="M 20 105 A 80 80 0 0 1 180 105" />
+                </svg>
+                <div class="gauge-value-display">
+                    <div id="speed-val" class="gauge-number">0</div>
+                    <div class="gauge-unit">MPH</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thermals & Air Telemetry -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Thermals & Powertrain</div>
+            </div>
+            
+            <div class="mini-gauge-row">
+                <span class="mini-gauge-label">Engine Coolant Temp</span>
+                <span id="coolant-val" class="mini-gauge-val">195.0 °F</span>
+            </div>
+            <div class="progress-bar-bg"><div id="coolant-bar" class="progress-bar-fill" style="width: 50%;"></div></div>
+
+            <div class="mini-gauge-row">
+                <span class="mini-gauge-label">Transmission Fluid Temp</span>
+                <span id="trans-val" class="mini-gauge-val" style="color: #ff9100;">165.0 °F</span>
+            </div>
+            <div class="progress-bar-bg"><div id="trans-bar" class="progress-bar-fill" style="width: 45%; background: #ff9100;"></div></div>
+
+            <div class="mini-gauge-row">
+                <span class="mini-gauge-label">Engine Throttle Position</span>
+                <span id="throttle-val" class="mini-gauge-val">18.5%</span>
+            </div>
+            <div class="progress-bar-bg"><div id="throttle-bar" class="progress-bar-fill" style="width: 18.5%;"></div></div>
+
+            <div class="mini-gauge-row">
+                <span class="mini-gauge-label">Mass Air Flow (MAF)</span>
+                <span id="maf-val" class="mini-gauge-val">4.50 g/s</span>
+            </div>
+            <div class="progress-bar-bg"><div id="maf-bar" class="progress-bar-fill" style="width: 15%;"></div></div>
+        </div>
+    </div>
+
+    <!-- Mode 06 Cylinder Misfire Monitor -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+            <div>
+                <div class="card-title">🎯 Mode 06: Cylinder Misfire Counters (Universal OBD-II)</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Real-time misfire counts per cylinder for the last 1,000 engine cycles</div>
+            </div>
+        </div>
+        <div id="misfire-container" class="misfire-grid">
+            <!-- Populated via WS -->
+        </div>
+    </div>
+
+    <!-- Mode 02 Freeze Frame Snapshot -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+            <div>
+                <div class="card-title">📸 Mode 02: Freeze Frame Diagnostics Snapshot</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Exact sensor parameters recorded when DTC <strong style="color: var(--accent-orange);" id="ff-dtc-code">P0104</strong> was triggered</div>
+            </div>
+        </div>
+        <div class="freeze-frame-grid" id="freeze-frame-container">
+            <!-- Populated via WS -->
+        </div>
+    </div>
+
+    <!-- State Emissions Inspection Readiness (I/M Readiness) -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+            <div>
+                <div class="card-title">🚦 State Emissions Inspection Readiness (I/M Monitors)</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Universal compliance status for state inspection & emission testing</div>
+            </div>
+        </div>
+        <table class="readiness-table">
+            <thead>
+                <tr>
+                    <th>Emission Monitor System</th>
+                    <th>Status</th>
+                    <th>Inspection Result</th>
+                </tr>
+            </thead>
+            <tbody id="readiness-tbody">
+                <!-- Populated via WS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Live Telemetry Waveform Chart -->
+    <div class="chart-section">
+        <div class="card-header">
+            <div class="card-title">Real-Time Waveform (RPM vs Throttle vs Speed vs Load)</div>
+            <div class="mini-gauge-label">WebSocket Stream Rate: 60 FPS</div>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="telemetryChart"></canvas>
+        </div>
+    </div>
+
+    <!-- DTC Fault Code Center -->
+    <div class="dtc-section">
+        <div class="dtc-header">
+            <div>
+                <h2>Diagnostic Trouble Codes (Confirmed & Pending)</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">Active fault codes queried from vehicle powertrain & chassis controllers</p>
+            </div>
+            <div id="dtc-badge" class="dtc-count-badge">2 Active DTCs</div>
+        </div>
+
+        <div id="dtc-container" class="dtc-list">
+            <!-- Populated via WebSocket -->
+        </div>
+    </div>
+
+    <!-- Clear DTC Confirmation Modal -->
+    <div id="clear-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3>⚠️ Clear Diagnostic Codes?</h3>
+            <p>This will send <strong>OBD-II Mode 04</strong> to the ECM and TCM, turning off the <strong>Check Engine Light (CEL)</strong> and resetting emission readiness monitors.</p>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeClearModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="executeClearDTCs()">Yes, Clear Codes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MAX_RPM = 8000;
+        const MAX_SPEED = 140;
+        const ARC_LENGTH = 251.2;
+
+        const ctx = document.getElementById('telemetryChart').getContext('2d');
+        const maxPoints = 50;
+        const labels = Array(maxPoints).fill('');
+        const rpmData = Array(maxPoints).fill(0);
+        const throttleData = Array(maxPoints).fill(0);
+        const speedData = Array(maxPoints).fill(0);
+
+        const telemetryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Engine RPM (x100)', data: rpmData, borderColor: '#00e5ff', borderWidth: 2, tension: 0.3, pointRadius: 0, yAxisID: 'y' },
+                    { label: 'Throttle %', data: throttleData, borderColor: '#d500f9', borderWidth: 2, tension: 0.3, pointRadius: 0, yAxisID: 'y1' },
+                    { label: 'Speed MPH', data: speedData, borderColor: '#2979ff', borderWidth: 2, tension: 0.3, pointRadius: 0, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    x: { display: false },
+                    y: { position: 'left', min: 0, max: 60, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                    y1: { position: 'right', min: 0, max: 100, grid: { display: false }, ticks: { color: '#d500f9' } }
+                },
+                plugins: { legend: { labels: { color: '#f1f5f9', font: { weight: '600' } } } }
+            }
+        });
+
+        function setGauge(elementId, value, max) {
+            const el = document.getElementById(elementId);
+            const clamped = Math.min(Math.max(value, 0), max);
+            const fraction = clamped / max;
+            const offset = ARC_LENGTH * (1 - fraction);
+            el.style.strokeDashoffset = offset;
+        }
+
+        function renderActuators(actuators) {
+            const cont = document.getElementById('actuator-cards-container');
+            if (!actuators || actuators.length === 0) {
+                cont.innerHTML = `<div style="color: var(--text-secondary); text-align: center; padding: 20px;">No actuators available for this vehicle profile.</div>`;
+                return;
+            }
+
+            cont.innerHTML = actuators.map(a => `
+                <div class="actuator-card">
+                    <div>
+                        <div class="act-title">${a.name}</div>
+                        <div class="act-module">${a.module}</div>
+                        <div class="act-desc">${a.description}</div>
+                    </div>
+                    <div class="act-actions">
+                        <button class="btn btn-success" style="flex: 1;" onclick="triggerActuation('${a.id}', 'ON')">▶️ Test ON</button>
+                        <button class="btn btn-danger" style="flex: 1;" onclick="triggerActuation('${a.id}', 'OFF')">⏹️ OFF</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function triggerActuation(actId, state) {
+            const logBox = document.getElementById('act-log-display');
+            logBox.innerText = `⏳ Transmitting UDS Actuation Command for ${actId} -> ${state}...`;
+            logBox.style.color = '#ff9100';
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: "actuate", actuator_id: actId, state: state }));
+            }
+        }
+
+        function renderMisfires(misfires) {
+            const cont = document.getElementById('misfire-container');
+            cont.innerHTML = misfires.map(m => `
+                <div class="misfire-card">
+                    <div class="misfire-cyl-title">Cylinder ${m.cylinder}</div>
+                    <div class="misfire-count" style="color: ${m.count === 0 ? 'var(--accent-green)' : 'var(--accent-red)'};">${m.count}</div>
+                    <span class="misfire-status-badge" style="color: ${m.count === 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; background: ${m.count === 0 ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 23, 68, 0.15)'};">
+                        ${m.status}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function renderFreezeFrame(ff) {
+            document.getElementById('ff-dtc-code').innerText = ff.dtc || 'P0104';
+            const cont = document.getElementById('freeze-frame-container');
+            cont.innerHTML = `
+                <div class="ff-item"><div class="ff-label">Trigger DTC</div><div class="ff-val" style="color: var(--accent-orange);">${ff.dtc}</div></div>
+                <div class="ff-item"><div class="ff-label">Engine RPM</div><div class="ff-val">${ff.rpm} RPM</div></div>
+                <div class="ff-item"><div class="ff-label">Vehicle Speed</div><div class="ff-val">${ff.speed_mph} MPH</div></div>
+                <div class="ff-item"><div class="ff-label">Coolant Temp</div><div class="ff-val">${ff.coolant_f} °F</div></div>
+                <div class="ff-item"><div class="ff-label">Engine Load</div><div class="ff-val">${ff.engine_load_pct}%</div></div>
+                <div class="ff-item"><div class="ff-label">Throttle Position</div><div class="ff-val">${ff.throttle_pct}%</div></div>
+                <div class="ff-item"><div class="ff-label">Short Term Fuel Trim</div><div class="ff-val">${ff.fuel_trim_st_bank1}</div></div>
+                <div class="ff-item"><div class="ff-label">Long Term Fuel Trim</div><div class="ff-val">${ff.fuel_trim_lt_bank1}</div></div>
+            `;
+        }
+
+        function renderEmissions(emissions) {
+            const tbody = document.getElementById('readiness-tbody');
+            tbody.innerHTML = emissions.map(e => `
+                <tr>
+                    <td><strong>${e.name}</strong></td>
+                    <td class="${e.ready ? 'ready-pass' : 'ready-fail'}">${e.status}</td>
+                    <td>${e.ready ? '✅ READY (Passes Inspection)' : '⚠️ INCOMPLETE (Drive Cycle Needed)'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderDTCs(dtcDetails) {
+            const container = document.getElementById('dtc-container');
+            const badge = document.getElementById('dtc-badge');
+            if (!dtcDetails || dtcDetails.length === 0) {
+                badge.innerText = "0 Active DTCs";
+                badge.style.borderColor = "var(--accent-green)";
+                badge.style.color = "var(--accent-green)";
+                badge.style.backgroundColor = "rgba(0, 230, 118, 0.15)";
+                container.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--accent-green); font-weight: 700;">✅ System Clean - No Active Fault Codes</div>`;
+                return;
+            }
+
+            badge.innerText = `${dtcDetails.length} Active DTC${dtcDetails.length > 1 ? 's' : ''}`;
+            badge.style.borderColor = "var(--accent-red)";
+            badge.style.color = "var(--accent-red)";
+            badge.style.backgroundColor = "rgba(255, 23, 68, 0.15)";
+
+            container.innerHTML = dtcDetails.map(d => `
+                <div class="dtc-card ${d.severity === 'High' || d.severity === 'Critical' ? 'critical' : ''}">
+                    <div class="dtc-top">
+                        <span class="dtc-code">${d.code}</span>
+                        <span class="dtc-system">${d.system}</span>
+                    </div>
+                    <div class="dtc-title">${d.title}</div>
+                    <div class="dtc-desc">${d.description}</div>
+                    <div class="dtc-tips-box">
+                        <strong>🛠️ Repair & Diagnostic Guidance:</strong><br>
+                        ${d.repair_tips}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        let ws = null;
+        let frameCount = 0;
+        let lastFpsTime = performance.now();
+
+        function connectWebSocket() {
+            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${location.host}/ws`);
+
+            ws.onopen = () => {
+                document.getElementById('ws-speed-badge').innerText = "⚡ WebSocket: Connected (60 FPS)";
+                document.getElementById('ws-speed-badge').style.borderColor = "var(--accent-green)";
+                document.getElementById('ws-speed-badge').style.color = "var(--accent-green)";
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleTelemetry(data);
+                
+                frameCount++;
+                const now = performance.now();
+                if (now - lastFpsTime >= 1000) {
+                    const fps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+                    document.getElementById('ws-speed-badge').innerText = `⚡ WebSocket: ${fps} FPS | ${data.latency_ms || 1.5}ms`;
+                    frameCount = 0;
+                    lastFpsTime = now;
+                }
+            };
+
+            ws.onclose = () => {
+                document.getElementById('ws-speed-badge').innerText = "⚠️ WebSocket: Reconnecting...";
+                document.getElementById('ws-speed-badge').style.borderColor = "var(--accent-orange)";
+                document.getElementById('ws-speed-badge').style.color = "var(--accent-orange)";
+                setTimeout(connectWebSocket, 1000);
+            };
+        }
+
+        function handleTelemetry(data) {
+            if (data.vin) document.getElementById('vin-display').innerText = data.vin;
+            if (data.model_string) document.getElementById('model-display').innerText = data.model_string;
+            document.getElementById('vbatt-display').innerText = `${data.battery_voltage.toFixed(1)} V`;
+
+            document.getElementById('rpm-val').innerText = Math.round(data.rpm);
+            document.getElementById('rpm-text').innerText = `${Math.round(data.rpm)} RPM`;
+            setGauge('rpm-gauge-fill', data.rpm, MAX_RPM);
+
+            document.getElementById('speed-val').innerText = Math.round(data.speed_mph);
+            setGauge('speed-gauge-fill', data.speed_mph, MAX_SPEED);
+
+            document.getElementById('coolant-val').innerText = `${data.coolant_f.toFixed(1)} °F`;
+            document.getElementById('coolant-bar').style.width = `${Math.min(100, (data.coolant_f / 240) * 100)}%`;
+
+            document.getElementById('trans-val').innerText = `${data.trans_temp_f.toFixed(1)} °F`;
+            document.getElementById('trans-bar').style.width = `${Math.min(100, (data.trans_temp_f / 240) * 100)}%`;
+
+            document.getElementById('throttle-val').innerText = `${data.throttle_pct.toFixed(1)}%`;
+            document.getElementById('throttle-bar').style.width = `${data.throttle_pct}%`;
+
+            document.getElementById('maf-val').innerText = `${data.maf_gs.toFixed(2)} g/s`;
+            document.getElementById('maf-bar').style.width = `${Math.min(100, (data.maf_gs / 80) * 100)}%`;
+
+            // Actuator response log
+            if (data.actuator_status && data.actuator_status.result !== "Ready") {
+                const logBox = document.getElementById('act-log-display');
+                logBox.innerText = `[${data.actuator_status.last_action}] ${data.actuator_status.result}`;
+                logBox.style.color = data.actuator_status.success ? 'var(--accent-green)' : 'var(--accent-red)';
+            }
+
+            // Badge
+            const badge = document.getElementById('connection-badge');
+            if (data.simulation_mode) {
+                badge.innerText = `SIMULATION (${data.make || 'Universal'})`;
+                badge.style.borderColor = "var(--accent-orange)";
+                badge.style.color = "var(--accent-orange)";
+                badge.style.backgroundColor = "rgba(255, 145, 0, 0.15)";
+                document.getElementById('toggle-sim-btn').innerText = "Switch to Live J2534";
+            } else {
+                badge.innerText = `LIVE J2534 (${data.make || data.hardware_name})`;
+                badge.style.borderColor = "var(--accent-green)";
+                badge.style.color = "var(--accent-green)";
+                badge.style.backgroundColor = "rgba(0, 230, 118, 0.15)";
+                document.getElementById('toggle-sim-btn').innerText = "Switch to Simulation";
+            }
+
+            // Logging Button
+            const recBtn = document.getElementById('record-btn');
+            if (data.is_logging) {
+                recBtn.innerText = `⏹️ Stop Recording (${data.log_records_count} rows)`;
+                recBtn.className = "btn btn-danger";
+            } else {
+                recBtn.innerText = "⏺️ Record Run (CSV)";
+                recBtn.className = "btn btn-purple";
+            }
+
+            // Chart
+            rpmData.shift();
+            rpmData.push(data.rpm / 100.0);
+            throttleData.shift();
+            throttleData.push(data.throttle_pct);
+            speedData.shift();
+            speedData.push(data.speed_mph);
+            telemetryChart.update();
+
+            // Initial render of static tables and actuators
+            if (!window.initialRenderDone || window.lastMake !== data.make) {
+                window.initialRenderDone = true;
+                window.lastMake = data.make;
+                if (data.actuators) renderActuators(data.actuators);
+                if (data.misfires) renderMisfires(data.misfires);
+                if (data.freeze_frame) renderFreezeFrame(data.freeze_frame);
+                if (data.emissions_readiness) renderEmissions(data.emissions_readiness);
+            }
+
+            if (window.lastDtcCount !== (data.dtcs ? data.dtcs.length : 0)) {
+                window.lastDtcCount = data.dtcs ? data.dtcs.length : 0;
+                renderDTCs(data.dtc_details);
+            }
+        }
+
+        function selectBrand(make) {
+            document.querySelectorAll('.brand-chip').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: "set_make", make: make }));
+            }
+        }
+
+        function toggleLogging() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const recBtn = document.getElementById('record-btn');
+                if (recBtn.innerText.includes("Stop")) {
+                    ws.send(JSON.stringify({ action: "stop_log" }));
+                } else {
+                    ws.send(JSON.stringify({ action: "start_log" }));
+                }
+            }
+        }
+
+        function toggleMode() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: "toggle_mode" }));
+            }
+        }
+
+        function openClearModal() { document.getElementById('clear-modal').style.display = 'flex'; }
+        function closeClearModal() { document.getElementById('clear-modal').style.display = 'none'; }
+
+        async function executeClearDTCs() {
+            closeClearModal();
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: "clear_dtcs" }));
+                alert("Mode 04 Clear DTC command transmitted across vehicle network!");
+            }
+        }
+
+        connectWebSocket();
+    </script>
+</body>
+</html>

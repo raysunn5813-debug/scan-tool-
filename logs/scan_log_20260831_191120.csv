@@ -1,0 +1,3 @@
+Timestamp,Time_Sec,RPM,Speed_MPH,Coolant_F,Trans_Temp_F,Oil_Temp_F,Throttle_Pct,Engine_Load_Pct,MAF_gs,Battery_V
+19:11:20.273,127.096,825.0,0.0,181.4,165.0,205.0,21.2,38.8,7.25,13.51
+19:11:20.510,127.356,818.5,0.0,181.4,165.0,205.0,21.2,38.8,7.25,13.52
